@@ -1,0 +1,63 @@
+Installation ----
+
+1. Clear the object files using
+
+   make clean
+   
+   
+2. Compile the codes using
+
+   make ankflag
+   
+
+
+
+
+
+
+
+Usage for CRAFT ----
+
+1. Edit the inputs.py file IF REQUIRED.
+
+2. For flagging bad channels run
+
+   python2/python3 runank.py input.fits output_1.fits uvbin
+   
+3. For flagging bad antennas/baselines run
+
+   python2/python3 runank.py output_1.fits output_2.fits baseline
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
