@@ -2,6 +2,7 @@ import os,sys
 import numpy as np
 import casatasks as ct
 import casatools
+from casaplotms import plotms
 
 
 
@@ -147,9 +148,16 @@ def calsinglechan(pars = None):
 
     print("Calibrating single channel file...\n")
     
-    gcout = ct.gaincal(vis=chan0file, caltable=calfile, field=pars['FluxCal']+","+pars['PhaseCal'], solint=pars['GainInt'], \
-                        refant=pars['RefAntenna'], minsnr=float(pars['MinSNR']), solmode='R', \
-                            rmsthresh=[float(th) for th in pars['OutThresh'].split()])
+    ct.gaincal(
+        vis=chan0file, \
+        caltable=calfile, \
+        field=pars['FluxCal']+","+pars['PhaseCal'], \
+        solint=pars['GainInt'], \
+        refant=pars['RefAntenna'], \
+        minsnr=pars['MinSNR'], \
+        solmode='R', \
+        rmsthresh=pars['OutThresh']
+    )
     
     print("\nFlux scaling...\n")
     fsout = ct.fluxscale(vis=chan0file, caltable=calfile, fluxtable=fluxfile, reference=pars['FluxCal'], transfer=pars['PhaseCal'])
@@ -201,19 +209,19 @@ def flagsinglechan (pars=None, ankdir=None, ankin=None, ovrt=False):
 
         fcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
                     " --parfile " + ankin + " --infilename " + fcalfile + " --outfilename " + fcalfile+"_f" + \
-                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/"+pars['FluxCal'] + \
+                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/fcal_"+pars['FluxCal'] + \
                     " --flagmode uvbin --targetype=calch0 --clearscratch --nthreads " + str(pars['FlgThreads'])
 
         print("Running \n" + fcalcmd)
         os.system(fcalcmd)
 
-        fcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
+        pcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
                     " --parfile " + ankin + " --infilename " + pcalfile + " --outfilename " + pcalfile+"_f" + \
-                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/"+pars['PhaseCal'] + \
+                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/pcal_"+pars['PhaseCal'] + \
                     " --flagmode uvbin --targetype=calch0 --clearscratch --nthreads " + str(pars['FlgThreads'])
 
-        print("Running \n" + fcalcmd)
-        os.system(fcalcmd)
+        print("Running \n" + pcalcmd)
+        os.system(pcalcmd)
 
         if (os.path.exists(fcalfile+"_f.ms")):
             os.system("rm -rf "+fcalfile+"_f.ms")
@@ -223,6 +231,25 @@ def flagsinglechan (pars=None, ankdir=None, ankin=None, ovrt=False):
         print("Converting calibrator FITS back to MS...\n")
         ct.importuvfits(vis=fcalfile+"_f.ms", fitsfile=fcalfile+"_f.fits")
         ct.importuvfits(vis=pcalfile+"_f.ms", fitsfile=pcalfile+"_f.fits")
+
+
+        print("Generating diagnostic plots...")
+
+        plotms(vis=fcalfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
+
+        plotms(vis=fcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/fcal_"+pars['FluxCal']+"_row.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
+
+        plotms(vis=pcalfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
+
+        plotms(vis=pcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/pcal_"+pars['PhaseCal']+"_row.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
+
+
 
         #   Open and edit the flags in the MS files
         print("Copying flags to the single channel file...\n")
@@ -285,7 +312,7 @@ def exbpcal (fitsname, bpcal, pars=None):
         os.system("rm -rf "+bpcalfile)
 
     print("\nApplying calibration...\n")
-    ct.applycal(vis=fitsname+".ms", field=bpcal, gaintable=[fluxfile], applymode='calonly')
+    ct.applycal(vis=fitsname+".ms", field=bpcal, gaintable=[fluxfile], applymode='')
 
     print("Exporting BP cal...\n")
     ct.mstransform(vis=fitsname+".ms", outputvis=bpcalfile, datacolumn="corrected", keepflags=False, \
@@ -319,7 +346,7 @@ def calbpcal (bpcal, pars=None):
     ct.bandpass(vis=bpcalfile, caltable=bpassfile, field=bpcal, refant=pars['RefAntenna'], minsnr=float(pars['MinSNR']))
 
     print("\nApplying bandpass...\n")
-    ct.applycal(vis=bpcalfile, gaintable=[bpassfile], applymode='calonly')
+    ct.applycal(vis=bpcalfile, gaintable=[bpassfile], applymode='')
 
     print("\n Done!\n")
 
@@ -345,12 +372,11 @@ def flagbpcal (bpcal, pars=None, ankdir=None, ankin=None, ovrt=False):
     #   ----------------------------------
     #   Flag calibrators with aNKflag
     #   ----------------------------------
-    '''
+    
     if ( (ankin != None) and (os.path.exists(ankin+'.yml')) ):
 
         print("Exporting calibrator FITS...\n")
-        ct.exportuvfits(vis=chan0file, fitsfile=fcalfile+".fits", datacolumn='corrected', field=pars['FluxCal'], overwrite=ovrt)
-        ct.exportuvfits(vis=chan0file, fitsfile=pcalfile+".fits", datacolumn='corrected', field=pars['PhaseCal'], overwrite=ovrt)
+        ct.exportuvfits(vis=bpcalfile+".ms", fitsfile=bpcalfile+".fits", datacolumn='corrected', field=bpcal, overwrite=ovrt)
 
         
         print("Flagging calibrators with aNKflag...\n")        
@@ -358,71 +384,55 @@ def flagbpcal (bpcal, pars=None, ankdir=None, ankin=None, ovrt=False):
         if (not os.path.exists("glogout.dat")):
             os.system("cp "+ankdir+"/glogout.dat .")
 
-        fcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
-                    " --parfile " + ankin + " --infilename " + fcalfile + " --outfilename " + fcalfile+"_f" + \
-                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/"+pars['FluxCal'] + \
-                    " --flagmode uvbin --targetype=calch0 --clearscratch --nthreads " + str(pars['FlgThreads'])
+        bpcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
+                    " --parfile " + ankin + " --infilename " + bpcalfile + " --outfilename " + bpcalfile+"_f" + \
+                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/bpcal_"+bpcal + \
+                    " --flagmode uvbin --targetype=calbp --clearscratch --nthreads " + str(pars['FlgThreads'])
 
-        print("Running \n" + fcalcmd)
-        os.system(fcalcmd)
+        print("Running \n" + bpcalcmd)
+        os.system(bpcalcmd)
 
-        fcalcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
-                    " --parfile " + ankin + " --infilename " + pcalfile + " --outfilename " + pcalfile+"_f" + \
-                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/"+pars['PhaseCal'] + \
-                    " --flagmode uvbin --targetype=calch0 --clearscratch --nthreads " + str(pars['FlgThreads'])
+        if (os.path.exists(bpcalfile+"_f.ms")):
+            os.system("rm -rf "+bpcalfile+"_f.ms")
 
-        print("Running \n" + fcalcmd)
-        os.system(fcalcmd)
+        print("Converting BP calibrator FITS back to MS...\n")
+        ct.importuvfits(vis=bpcalfile+"_f.ms", fitsfile=bpcalfile+"_f.fits")
+        
+        print("Generating diagnostic plots...")
 
-        if (os.path.exists(fcalfile+"_f.ms")):
-            os.system("rm -rf "+fcalfile+"_f.ms")
-        if (os.path.exists(pcalfile+"_f.ms")):
-            os.system("rm -rf "+pcalfile+"_f.ms")
+        plotms(vis=bpcalfile+"_f.ms", xaxis="frequency", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
 
-        print("Converting calibrator FITS back to MS...\n")
-        ct.importuvfits(vis=fcalfile+"_f.ms", fitsfile=fcalfile+"_f.fits")
-        ct.importuvfits(vis=pcalfile+"_f.ms", fitsfile=pcalfile+"_f.fits")
+        plotms(vis=bpcalfile+"_f.ms", xaxis="frequency", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+bpcal+"_freq.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
+
+        plotms(vis=bpcalfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
+
+        plotms(vis=bpcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+bpcal+"_row.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
 
         #   Open and edit the flags in the MS files
-        print("Copying flags to the single channel file...\n")
+        print("Copying flags to the BP cal file...\n")
         wms     = casatools.ms()
-        wmsmd   = casatools.msmetadata()
 
-        wms.open(fcalfile+"_f.ms")
+        wms.open(bpcalfile+"_f.ms")
         wms.selectinit(datadescid=0)
-        fcalflgs  = wms.getdata(["flag"])["flag"]
-        #print(fcalflgs.shape)
-        wms.close()
+        bpcalflgs  = wms.getdata(["flag"])["flag"]
+        #print(bpcalflgs.shape)
+        wms.close()        
 
-        wms.open(pcalfile+"_f.ms")
+        wms.open(bpcalfile+".ms", nomodify=False)
         wms.selectinit(datadescid=0)
-        pcalflgs  = wms.getdata(["flag"])["flag"]
-        #print(pcalflgs.shape)
-        wms.close()
-
-        wmsmd.open(chan0file)
-        fcalfld = wmsmd.fieldsforname(pars['FluxCal'])
-        pcalfld = wmsmd.fieldsforname(pars['PhaseCal'])
-        wmsmd.done()
-
-        wms.open(chan0file, nomodify=False)
-        wms.selectinit(datadescid=0)
-        wms.select({'field_id':fcalfld})
         fldflg  = wms.getdata(["flag"])
-        fldflg["flag"] = fcalflgs
+        fldflg["flag"] = bpcalflgs
         #print(fldflg["flag"].shape)
         wms.putdata(fldflg)
         wms.close()
 
-        wms.open(chan0file, nomodify=False)
-        wms.selectinit(datadescid=0)
-        wms.select({'field_id':pcalfld})
-        fldflg  = wms.getdata(["flag"])
-        fldflg["flag"] = pcalflgs
-        #print(fldflg["flag"].shape)
-        wms.putdata(fldflg)
-        wms.close()
-    '''
+    
     print(" Done!\n")
 
 
@@ -445,7 +455,7 @@ def extarget (fitsname, bpcal, pars=None):
         os.system("rm -rf "+tarfile)
 
     print("\nApplying calibration...\n")
-    ct.applycal(vis=fitsname+".ms", field=pars['TargetName'], gaintable=[fluxfile,bpassfile], applymode='calonly')
+    ct.applycal(vis=fitsname+".ms", field=pars['TargetName'], gaintable=[fluxfile,bpassfile], applymode='')
 
     print("Exporting target file...\n")
     ct.mstransform(vis=fitsname+".ms", outputvis=tarfile, datacolumn="corrected", keepflags=False, \
@@ -462,6 +472,66 @@ def extarget (fitsname, bpcal, pars=None):
 
 
 
+def flagtarget (targetname, pars=None, ankdir=None, ankin=None, ovrt=False):
+    
+    #   Flag calibrated target data 
 
+    tarfile   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_"+targetname
+    
+    if (os.path.exists(tarfile+".fits") and ovrt):
+        os.system("rm -rf "+tarfile+".fits")
+    
+
+    #   ----------------------------------
+    #   Flag target with aNKflag
+    #   ----------------------------------
+    
+    if ( (ankin != None) and (os.path.exists(ankin+'.yml')) ):
+
+        print("Exporting target FITS...\n")
+        ct.exportuvfits(vis=tarfile+".ms", fitsfile=tarfile+".fits", datacolumn='corrected', overwrite=ovrt)
+
+        
+        print("Flagging the target aNKflag...\n")        
+    
+        if (not os.path.exists("glogout.dat")):
+            os.system("cp "+ankdir+"/glogout.dat .")
+
+        tarcmd = "python3 " + ankdir + "/runank.py --ankdir " + ankdir + " --scratchdir ankscratch/ " + \
+                    " --parfile " + ankin + " --infilename " + tarfile + " --outfilename " + tarfile+"_f" + \
+                    " --logfile " +pars['WorkDir']+pars['LogDir']+"/target_"+targetname + \
+                    " --flagmode uvbin --targetype=normal --clearscratch --nthreads " + str(pars['FlgThreads'])
+
+        print("Running \n" + tarcmd)
+        os.system(tarcmd)
+
+        if (os.path.exists(tarfile+"_f.ms")):
+            os.system("rm -rf "+tarfile+"_f.ms")
+
+        print("Converting BP calibrator FITS back to MS...\n")
+        ct.importuvfits(vis=tarfile+"_f.ms", fitsfile=tarfile+"_f.fits")
+        
+        print("Generating diagnostic plots...")
+
+        plotms(vis=tarfile+"_f.ms", xaxis="frequency", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
+
+        plotms(vis=tarfile+"_f.ms", xaxis="frequency", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/target_"+targetname+"_freq.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
+
+        plotms(vis=tarfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
+               height=1000, width=1000, gridcols=1, showgui=False)
+
+        plotms(vis=tarfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/target_"+targetname+"_row.png", \
+                    height=1000, width=1000, overwrite=True, showgui=False)
+
+    
+    print(" Done!\n")
+
+
+    return (0)
+#   -----------------------------------------------------------------------------------------------------
 
 

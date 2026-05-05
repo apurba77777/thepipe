@@ -94,9 +94,18 @@ else:
 	
 
 
+if ((argus.targetype == "calch0") or (argus.targetype == "calbp")):
+	uugrids	= flagparams['UgridCal']
+	vvgrids	= flagparams['VgridCal']
+else:
+	uugrids	= flagparams['UgridTar']
+	vvgrids	= flagparams['VgridTar']
+
+
+
 
 #	Convert parameters to aNKflag secret codes
-covertparams(flagparams, partype, argus.scratchdir+'/flagpars.pars', argus)
+covertparams(flagparams, partype, argus.scratchdir+'/flagpars.pars', argus, uugrids=uugrids, vvgrids=vvgrids)
 
 
 
@@ -117,7 +126,6 @@ if (argus.flagautocorr):
 	nauto 		= 	flagautocorr(flagparams['N_ants'],data)
 	infile.writeto(argus.scratchdir+'/scratchfits.fits',output_verify='warn',overwrite=True)
 	infile.close()
-
 
 
 
@@ -161,9 +169,9 @@ if (ConvertFITS):
 		print("No bad channel list found... continuing...\n")
 
 	#	-------------------------------------------------------------------
-	
+
 	if ( argus.flagmode == "uvbin" ):		
-		uvfitstobinary(data, argus.scratchdir, flagparams['Ugrids'], flagparams['Vgrids'], flagparams, figname=argus.logfile+'_uvbin.png')
+		uvfitstobinary(data, argus.scratchdir, uugrids, vvgrids, flagparams, figname=argus.logfile+'_uvbin.png')
 
 	elif ( argus.flagmode == "baseline" ):		
 		baselinestobinary(flagparams['N_ants'], data, argus.scratchdir, flagparams['ScanBrkSec'], flagparams)
@@ -214,7 +222,7 @@ if (ReadBack):
 
 
 	if ( argus.flagmode == "uvbin" ):	
-		bintofits	=	uvfitsfrombinary(data2, argus.scratchdir, flagparams['Ugrids'], flagparams['Vgrids'], flagparams)
+		bintofits	=	uvfitsfrombinary(data2, argus.scratchdir, uugrids, vvgrids, flagparams)
 
 	elif ( argus.flagmode == "baseline" ):
 		baselinesfrombinary(flagparams['N_ants'], data2, argus.scratchdir, flagparams)
@@ -225,7 +233,8 @@ if (ReadBack):
 
 	#	-------------------------------		Plot diagnostics	---------------
 
-	amphasevsrow (data, data2, flagparams, fig_size=12.0, figname=argus.logfile+'_amphasevsrow.png')
+	#if (argus.targetype == 'calch0'):
+	#	amphasevsrow (data, data2, flagparams, fig_size=12.0, figname=argus.logfile+'_amphasevsrow.png')
 
 
 

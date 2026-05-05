@@ -148,7 +148,7 @@ FLAGPARS4		=	[	[ 'chan_ind',	'rms',		'mean',		'am',	1.5,	0.1,	0,	'',				0,	0,	0.
 #	--------------		Convert parameters to aNKflag secret codes 
 #	-------------------------------------------------------------------------------
 
-def covertparams(flagparams, partype, flagparfile, argus):
+def covertparams(flagparams, partype, flagparfile, argus, uugrids, vvgrids):
 
 	#	Write encoded parameters in flagparfile
 
@@ -156,8 +156,8 @@ def covertparams(flagparams, partype, flagparfile, argus):
 
 	flagparfile	=	open(flagparfile,'w')
 	flagparfile.write('%d	%d	%d	%d	%d	'\
-					%(flagparams['N_ants'], exmode.index(argus.flagmode), flagparams['Ugrids'], \
-						flagon.index(flagparams['ScanFlMean'][0])+1, flagparams['Vgrids']))
+					%(flagparams['N_ants'], exmode.index(argus.flagmode), uugrids, \
+						flagon.index(flagparams['ScanFlMean'][0])+1, vvgrids))
 	flagparfile.write('%f	%f	%d	%d	%d	%f	%f\n'\
 					%(float(flagparams['ScanFlMean'][1]), float(flagparams['ScanFlMean'][2]), len(flagparams[partype]), \
 						argus.nthreads, WriteOut, float(flagparams['BlockPow']), float(flagparams['ScanFlMean'][3])))
