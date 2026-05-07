@@ -38,10 +38,13 @@ def get_args():
 
 def print_modes():
     print("\n You need to specify a mode with --mode !!!!!\n")
-    print(" Supported modes are      imgtarget   - Image the calibrated target")
+    print(" Supported modes are      avgtarget   - Channel average target visibilities")
+    print("                          imgtarget   - Image the calibrated target")
     print("                          selfcal     - Self calibrate")
     print("                          flagcal     - Flag calibrated visibilities")
     print("                          contimg     - Attempt to produce the *final* continuum image")
+    print("                          getuvsub    - Subtract the final continuum model")
+    print("                          flaguvsub   - Flag continuum subtracted visibilities")
     
     print("\n Let's try again...\n")
     return (0)
@@ -90,35 +93,77 @@ if (argus.mode == None):
 
 #   --------------------------- Tasks   ------------
 
+
+
+#   Channel average target visibilities
+if (argus.mode == "avgtarget"):      
+
+    for ivis in pars['VisList']:
+        avgtarget (ivis, pars)
+
+
+
+
 #   Convert fits to MS
-if (argus.mode == "imgtarget"):  
+elif (argus.mode == "imgtarget"):  
     
-    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+".ms" for vis in pars['VisList'] ]
+    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg.ms" for vis in pars['VisList'] ]
 
     imgtarget(listofvis, argus.imgname, argus.savemodel, argus.intmask, pars)
+
+
+
 
 #   Self-calibrate
 elif (argus.mode == "selfcal"):  
     
-    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis for vis in pars['VisList'] ]
+    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg" for vis in pars['VisList'] ]
 
     for ivis in listofvis:
-        selfcal (ivis+".ms", ivis+".scal", argus.calmode, pars)
+        selfcal (ivis, ivis+".scal", argus.calmode, pars)
+
+
+
 
 #   Flag calibrated visibilities
 elif (argus.mode == "flagcal"):  
     
-    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis for vis in pars['VisList'] ]
+    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg" for vis in pars['VisList'] ]
 
     for ivis in listofvis:
         flagcaltarget (ivis, pars, ankdir=argus.pipedir+"ankflag_3/", ankin=argus.flgin, ovrt=argus.overwrite)
 
-#   Attempt to produce the *final* continuum image
-if (argus.mode == "contimg"):  
-    
-    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+".ms" for vis in pars['VisList'] ]
 
-    finalimg(listofvis, argus.imgname, argus.savemodel, argus.intmask, pars)
+
+
+#   Attempt to produce the *final* continuum image
+elif (argus.mode == "contimg"):  
+    
+    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg.ms" for vis in pars['VisList'] ]
+
+    finalimg(listofvis, argus.savemodel, pars)
+
+
+
+
+#   Channel average target visibilities
+elif (argus.mode == "getuvsub"):      
+
+    for ivis in pars['VisUvSub']:
+        getuvsub (ivis, ivis+"_f_avg.scal", pars)
+
+
+
+
+#   Flag continuum subtracted visibilities
+elif (argus.mode == "flaguvsub"):  
+    
+    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_uvsub" for vis in pars['VisUvSub'] ]
+
+    for ivis in listofvis:
+        flagavguvsub (ivis, pars, ankdir=argus.pipedir+"ankflag_3/", ankin=argus.flgin, ovrt=argus.overwrite)
+
+
 
 else:
     print_modes()

@@ -1,0 +1,124 @@
+#   -----------------------------------------------------------------
+#   This file provides the control parameters for aNKflag
+#   -----------------------------------------------------------------
+
+Ukey:       "UU"                                            #   Keyword for u   
+Vkey:       "VV"                                            #   Keyword for v
+Wkey:       "WW"                                            #   Keyword for w
+UgridCal:   1                                               #   Gridsize in u for calibrators
+VgridCal:   1                                               #   Gridsize in v for calibrators
+UgridTar:   10                                              #   Gridsize in u for Target
+VgridTar:   10                                              #   Gridsize in v for Target
+
+Npols:      2                                               #	Number of polarizations
+N_ants:     30                                              #	Maximum number of antennas
+
+FlagMode:   "uvbin"                                         #	Flaging mode ('baseline' / 'uvbin') 
+
+ScanFlMean: ['rms', 1.5, 1.5, 0.01]                         #   [FLAGON, tolerance_mean, tolearnce_rms, min fraction (should be > 0.01)]]	
+                                                            #   ONLY for 'baseline' mode
+ScanBrkSec: 300.0                                           #   Scan break time (minimum)
+BlockPow:   0.8                                             #	Power low for Block non-Gaussianity 
+
+
+
+#   Actual flagging parameters
+
+FlgCalCh0:                                                  #   Applicable to single channel calibrators only
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'am', tol: 5.0,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'am', tol: 2.0,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'am', tol: 1.5,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   're', tol: 1.2,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'im', tol: 1.2,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'am', tol: 1.1,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   're', tol: 1.1,   minfrac: 0.1}
+    - {what: 'rec_ind', flagon: 'mean', stat: 'median', data:   'im', tol: 1.1,   minfrac: 0.1}
+    
+    
+    
+    
+FlgCalBp:                                                   #   Applicable to bandpass calibrators only   
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'mean',    data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'mean',    data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'mean',    data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'mean',    data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}   
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   'am', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   're', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   'im', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   'am', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   're', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   'im', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat:  'mean',   data:   're', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat:  'mean',   data:   'im', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat:  'mean',   data:   're', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat:  'mean',   data:   'im', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   'am', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   're', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',  stat: 'median',  data:   'im', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   'am', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   're', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',  stat: 'median',  data:   'im', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+
+
+
+
+FlgNorm:                                                    #   Applicable to calibrated target
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'mean',   data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'mean',   data:   'am', tol: 3.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'median', data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 1}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'mean',   data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'rec_ind',  flagon: 'rms',   stat: 'mean',   data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'median', data:   'am', tol: 1.6,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'mean',   data:   'am', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',   stat: 'mean',   data:   'am', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'median', data:   're', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'median', data:   'im', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',   stat: 'median', data:   're', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'rec_ind',  flagon: 'rms',   stat: 'median', data:   'im', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    
+
+
+
+
+FlgUvsub:                                                   #   Applicable to UV-subtracted target
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'mean',   data:   'am', tol: 5.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'mean',   data:   'am', tol: 3.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'vis_ind',  flagon: 'mean',  stat: 'median', data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 1}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'mean',   data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'rec_ind',  flagon: 'rms',   stat: 'mean',   data:   'am', tol: 2.0,   minfrac: 0.1, fitorder: 0}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'mean',   data:   'am', tol: 1.5,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'median', data:   're', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+    - {what: 'chan_ind', flagon: 'rms',   stat: 'median', data:   'im', tol: 1.2,   minfrac: 0.1, fitorder: 2}
+
+
+
+
+
+
+
+
+
+
+    
+    
+#   Flagging parameter syntax    
+#
+#	FLAGON			=	'mean'		/	'rms'		/	'mean_rms'
+#	STATYPE			=	'mean'		/	'median'
+#	DATATYPE		=	're'		/	'im'		/	'am'		(/	'ph'	---- NOT YET SUPPORTED)
+
+#	Vis individual	=	[ 'vis_ind',	FLAGON,	STATYPE,	DATATYPE,	tol,	fitorder]
+
+#	Chan individual	=	[ 'chan_ind',	FLAGON,	STATYPE,	DATATYPE,	tol,	minfrac,	fitorder]
+
+#	Rec individual	=	[ 'rec_ind',	FLAGON,	STATYPE,	DATATYPE,	tol,	minfrac]
+
+#	Vis block		=	[ 'vis_block',	FLAGON,	STATYPE,	DATATYPE,	tol,	minfrac,	fitorder,	chan_block,	rec_block,	chan_max_frac,	rec_max_frac 	]
+
+#	Chan block		=	[ 'chan_block',	FLAGON,	STATYPE,	DATATYPE,	tol,	minfrac,	fitorder,	chan_block,	chan_max_frac]
+
+#	Rec block		=	[ 'rec_block',	FLAGON,	STATYPE,	DATATYPE,	tol,	minfrac,	fitorder,			rec_block,	rec_max_frac]
+
+

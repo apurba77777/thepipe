@@ -3,7 +3,7 @@
 #   ***********************************************************#
 #   A common script to run imaging and transient search
 #
-#   Inputs are	          <operation> <task> <o or p or imgname (optional)> <savemodel and or intmask>
+#   Inputs are	          <operation> <task> <o or p or imgname (optional)> <savemodel and/or intmask>
 #
 #   Operation modes       calibrate, imgcal
 #
@@ -21,12 +21,12 @@ Input_Dir="../inputfiles/"
 
 #	Input files
 
-parfile="march15"
-flgpar="ankpar"
-rfifile="rfifreqb3.txt"
+parfile="march15_b4"
+flgpar="ankpar_b4"
+rfifile="rfifreqb4.txt"
 
-imgparfile="img_b3_lugia"
-imgext="00"
+imgparfile="img_b4_lugia"
+imgext="b4_0"
 
 savemodel=""
 intmask=""

@@ -161,10 +161,39 @@ def calsinglechan(pars = None):
     
     print("\nFlux scaling...\n")
     fsout = ct.fluxscale(vis=chan0file, caltable=calfile, fluxtable=fluxfile, reference=pars['FluxCal'], transfer=pars['PhaseCal'])
-    print(pars['PhaseCal']," flus density ",fsout['1']['0']['fluxd'])
+    print(pars['PhaseCal']," flux density ",fsout['1']['0']['fluxd'])
 
     print("\nApplying calibration...\n")
     ct.applycal(vis=chan0file, gaintable=[fluxfile], applymode='calonly')
+
+    plotms(
+        vis=calfile, \
+        xaxis="time", \
+        yaxis="amp", \
+        gridrows=2, \
+        height=1000, \
+        width=1000, \
+        gridcols=1, \
+        coloraxis='antenna1', \
+        showgui=False
+    )
+
+    plotms(
+        vis=calfile, \
+        xaxis="time", \
+        yaxis="phase", \
+        gridrows=2, \
+        gridcols=1, \
+        rowindex=1, \
+        plotindex=1, \
+        clearplots=False, \
+        plotfile=pars['WorkDir']+pars['LogDir']+"/cal_"+pars['ReducedName']+".png", \
+        height=1000, \
+        width=1000, \
+        coloraxis='antenna1', \
+        overwrite=True, \
+        showgui=False
+    )
 
     print("\n Done!\n")
 
@@ -239,14 +268,14 @@ def flagsinglechan (pars=None, ankdir=None, ankin=None, ovrt=False):
                height=1000, width=1000, gridcols=1, showgui=False)
 
         plotms(vis=fcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/fcal_"+pars['FluxCal']+"_row.png", \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/fcal_"+pars['ReducedName']+"_row.png", \
                     height=1000, width=1000, overwrite=True, showgui=False)
 
         plotms(vis=pcalfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
                height=1000, width=1000, gridcols=1, showgui=False)
 
         plotms(vis=pcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/pcal_"+pars['PhaseCal']+"_row.png", \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/pcal_"+pars['ReducedName']+"_row.png", \
                     height=1000, width=1000, overwrite=True, showgui=False)
 
 
@@ -308,8 +337,8 @@ def exbpcal (fitsname, bpcal, pars=None):
     fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".fl"
     bpcalfile   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_bpcal_"+bpcal+".ms"
 
-    if (os.path.exists(bpcalfile)):
-        os.system("rm -rf "+bpcalfile)
+    os.system("rm -rf "+bpcalfile)
+    os.system("rm -rf "+bpcalfile+".*")
 
     print("\nApplying calibration...\n")
     ct.applycal(vis=fitsname+".ms", field=bpcal, gaintable=[fluxfile], applymode='')
@@ -347,6 +376,35 @@ def calbpcal (bpcal, pars=None):
 
     print("\nApplying bandpass...\n")
     ct.applycal(vis=bpcalfile, gaintable=[bpassfile], applymode='')
+
+    plotms(
+        vis=bpassfile, \
+        xaxis="frequency", \
+        yaxis="amp", \
+        gridrows=2, \
+        height=1000, \
+        width=1000, \
+        gridcols=1, \
+        coloraxis='antenna1', \
+        showgui=False
+    )
+
+    plotms(
+        vis=bpassfile, \
+        xaxis="frequency", \
+        yaxis="phase", \
+        gridrows=2, \
+        gridcols=1, \
+        rowindex=1, \
+        plotindex=1, \
+        clearplots=False, \
+        plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+pars['ReducedName']+".png", \
+        height=1000, \
+        width=1000, \
+        coloraxis='antenna1', \
+        overwrite=True, \
+        showgui=False
+    )
 
     print("\n Done!\n")
 
@@ -404,14 +462,14 @@ def flagbpcal (bpcal, pars=None, ankdir=None, ankin=None, ovrt=False):
                height=1000, width=1000, gridcols=1, showgui=False)
 
         plotms(vis=bpcalfile+"_f.ms", xaxis="frequency", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+bpcal+"_freq.png", \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+pars['ReducedName']+"_freq.png", \
                     height=1000, width=1000, overwrite=True, showgui=False)
 
         plotms(vis=bpcalfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
                height=1000, width=1000, gridcols=1, showgui=False)
 
         plotms(vis=bpcalfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+bpcal+"_row.png", \
+                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/bpcal_"+pars['ReducedName']+"_row.png", \
                     height=1000, width=1000, overwrite=True, showgui=False)
 
         #   Open and edit the flags in the MS files
@@ -458,9 +516,15 @@ def extarget (fitsname, bpcal, pars=None):
     ct.applycal(vis=fitsname+".ms", field=pars['TargetName'], gaintable=[fluxfile,bpassfile], applymode='')
 
     print("Exporting target file...\n")
-    ct.mstransform(vis=fitsname+".ms", outputvis=tarfile, datacolumn="corrected", keepflags=False, \
-                   correlation=pars['CorrProds'], field=pars['TargetName'], hanning=True, chanaverage=True, \
-                    chanbin=pars['TarChanAvg'])
+    ct.mstransform(
+        vis=fitsname+".ms", \
+        outputvis=tarfile, \
+        datacolumn="corrected", \
+        uvrange=pars['TarUvLim'], \
+        keepflags=False, \
+        correlation=pars['CorrProds'], \
+        field=pars['TargetName']
+    )
     
     print("\n Done!\n")
 
@@ -511,22 +575,6 @@ def flagtarget (targetname, pars=None, ankdir=None, ankin=None, ovrt=False):
         print("Converting BP calibrator FITS back to MS...\n")
         ct.importuvfits(vis=tarfile+"_f.ms", fitsfile=tarfile+"_f.fits")
         
-        print("Generating diagnostic plots...")
-
-        plotms(vis=tarfile+"_f.ms", xaxis="frequency", yaxis="amp", gridrows=2, \
-               height=1000, width=1000, gridcols=1, showgui=False)
-
-        plotms(vis=tarfile+"_f.ms", xaxis="frequency", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/target_"+targetname+"_freq.png", \
-                    height=1000, width=1000, overwrite=True, showgui=False)
-
-        plotms(vis=tarfile+"_f.ms", xaxis="row", yaxis="amp", gridrows=2, \
-               height=1000, width=1000, gridcols=1, showgui=False)
-
-        plotms(vis=tarfile+"_f.ms", xaxis="row", yaxis="phase", gridrows=2, gridcols=1, rowindex=1, \
-                plotindex=1, clearplots=False, plotfile=pars['WorkDir']+pars['LogDir']+"/target_"+targetname+"_row.png", \
-                    height=1000, width=1000, overwrite=True, showgui=False)
-
     
     print(" Done!\n")
 
