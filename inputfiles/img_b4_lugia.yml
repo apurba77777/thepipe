@@ -1,0 +1,110 @@
+#   -------------------------------------------------------------
+#   Parameters for imaging and selfcal --> Band 3, Lugia (J1832)
+#   -------------------------------------------------------------
+
+#   Directories 
+
+WorkDir:      "../processing/"
+OutDir:       "../reduced/"
+
+
+ImgDir:       "imgs/"                 #   Directory for images (Within WorkDir)
+UvMsDir:      "uvms/"                 #   Directory for intermediate UV files (Within WorkDir)
+ImgUvDir:     "imgms/"                #   Directory for UV files for imaging (Within WorkDir)
+LogDir:       "logs/"                 #   Directory for logs and diagnostics (Within WorkDir)
+
+
+# Data files and field identifiers
+
+VisList:                              #   List of visibilities (without .ms) for imaging
+    - "15mar2026_b4_J1832_f" 
+
+
+TargetName:   "J1832"                 #   Name of the target field
+PreModel:     ""                      #   Existing model to use
+
+
+# Imaging parameters
+
+ImgUvLim:     "3~200klambda"          #   UV range to use for imaging
+ImUvTaper:    ["35klambda"]           #   UV taper 
+
+ImgSize:      [3000]                  #   In pixel units 
+CellSize:     ["1.0arcsec"]           #   Pixel size
+WprojPln:     100                     #   Number of w-projection planes, -1 for automatic
+WtRobust:     0.0                     #   Robust for Briggs weighting 
+
+ImNiter:      3000                    #   Number of iterations
+ClnSigma:     10.0                    #   N-sigma threshold for cleaning
+DeconScls:    [0, 3, 15]              #   Scales for deconvolution
+SclBias:      0.5                     #   Bias towards smaller scales
+
+HowToMask:    "user"                  #   User or auto-multithreshold
+MaskFile:     "../inputfiles/J1832_b4.mask"                      #   Pre-existing clean mask
+
+
+#   Computing parameters
+
+FlgThreads:   8                       #   Number of threads for flagging
+TarChanAvg:   32                      #   Channel averaging factor for selfcal
+FinChanAvg:   64                      #   Channel averaging factor for uvsub
+
+#   Self-cal parameters
+
+CalUvLim:     "3~200klambda"
+GainInt:      "120s"                  #   Gain solution interval
+RefAntenna:   "10"                    #   Reference antenna
+MinSNR:       5.0                     #   Minimum SNR
+OutThresh:    [10.0, 7.0, 5.0, 4.5]   #   Outlier thresholds in units of RMS
+
+
+
+# Final Imaging parameters 
+
+FinImage:     "J1832_15mar2026_b4"    #   Name of the final image
+FinUvLim:     "3~200klambda"          #   UV range to use for imaging
+ImRobust:     0.0                     #   Robust for Briggs weighting 
+FiNiter:      5000                    #   Number of iterations
+FinSigma:     5.0                     #   N-sigma threshold for cleaning
+
+
+
+# Parameters for snapshot imaging
+
+CubeDir:      "tcubes/"               #   Directory for cubes (within OutDir)
+
+VisUvSub:
+    - "15mar2026_b4_J1832"            #   List of visibilities (without .ms) for uvsub imaging
+
+TimgSize:     [128]                   #   In pixel units 
+TcellSize:    ["2.0arcsec"]           #   Pixel size
+TwprojPln:    20                      #   Number of w-projection planes, -1 for automatic
+TwtRobust:    0.5                     #   Robust for Briggs weighting 
+TavgChan:     4                       #   Channel averaging for snapshot imaging
+
+
+# phasecentre                         #   For targeted imaging
+# mjdrange
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

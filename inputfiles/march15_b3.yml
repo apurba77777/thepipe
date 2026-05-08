@@ -1,0 +1,74 @@
+#   --------------------------------------
+#   Parameters for basic calibration
+#   --------------------------------------
+
+#   Directories 
+
+WorkDir:      "../processing/"
+RawDir:       "../processing/uvms/"
+OutDir:       "../reduced/"
+
+UvMsDir:      "uvms/"                 #   Directory for intermediate UV files (Within WorkDir)
+LogDir:       "logs/"                 #   Directory for logs and diagnostics (Within WorkDir)
+
+# Data files and field identifiers
+
+RawUvFile:    "49_088C_15MAR2026_SUBAR3_B3_GWB.LTA_RRLL.RRLLFITS" 
+RawFlagFiles: ""                      #   With path
+ReducedName:  "15mar2026_b3"
+TargetName:   "J1832"                 #   Name of the target field
+
+# Selection parameters
+
+CorrProds:    "RR,LL"                 #   Correpation products to use
+EdgeMhz:      10.0                    #   Edge of the band in MHz to flag  
+
+#  Calibration parameters
+
+SingleChan:   1850 
+FluxCal:      "3C286"                 #   Flux calibrator
+PhaseCal:     "1822-096"              #   Phase calibrator
+CalUvLim:     "1~200klambda"
+GainInt:      "120s"                  #   Gain solution interval
+RefAntenna:   "10"                    #   Reference antenna
+MinSNR:       5.0                     #   Minimum SNR
+OutThresh:    [10.0, 7.0, 5.0, 4.0]   #   Outlier thresholds in units of RMS
+CalScanEnd:   30.0                    #   Seconds to flag at either end of the calibrator scans
+
+#   Computing parameters
+
+FlgThreads:   8                       #   Number of threads for flagging
+
+#  Transformation parameters for target
+
+TarChanAvg:   32                      #   Channel averaging factor for target (*********change this part********)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

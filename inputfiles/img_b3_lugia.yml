@@ -1,0 +1,95 @@
+#   -------------------------------------------------------------
+#   Parameters for imaging and selfcal --> Band 3, Lugia (J1832)
+#   -------------------------------------------------------------
+
+#   Directories 
+
+WorkDir:      "../processing/"
+OutDir:       "../reduced/"
+
+ImgDir:       "imgs/"                 #   Directory for images (Within WorkDir)
+UvMsDir:      "uvms/"                 #   Directory for intermediate UV files (Within WorkDir)
+ImgUvDir:     "imgms/"                #   Directory for UV files for imaging (Within WorkDir)
+LogDir:       "logs/"                 #   Directory for logs and diagnostics (Within WorkDir)
+
+
+# Data files and field identifiers
+
+VisList:                              #   List of visibilities (without .ms)
+    - "15mar2026_b3_J1832_f" 
+
+
+TargetName:   "J1832"                 #   Name of the target field
+PreModel:     ""                      #   Existing model to use
+
+
+# Imaging parameters
+
+ImgUvLim:     ">2klambda"             #   UV range to use for imaging
+ImUvTaper:    ["20klambda"]           #   UV taper 
+
+ImgSize:      [2048]                  #   In pixel units 
+CellSize:     ["2.0arcsec"]           #   Pixel size
+WprojPln:     100                     #   Number of w-projection planes, -1 for automatic
+WtRobust:     0.0                     #   Robust for Briggs weighting 
+
+ImNiter:      1000                    #   Number of iterations
+ClnSigma:     10.0                    #   N-sigma threshold for cleaning
+DeconScls:    [0, 3, 15]              #   Scales for deconvolution
+SclBias:      0.5                     #   Bias towards smaller scales
+
+HowToMask:    "user"                  #   User or auto-multithreshold
+MaskFile:     "../inputfiles/J1832_b3.mask"        #   Pre-existing clean mask
+
+
+#   Computing parameters
+
+FlgThreads:   8                       #   Number of threads for flagging
+
+#   Self-cal parameters
+
+CalUvLim:     "2~200klambda"
+GainInt:      "120s"                  #   Gain solution interval
+RefAntenna:   "10"                    #   Reference antenna
+MinSNR:       5.0                     #   Minimum SNR
+OutThresh:    [10.0, 7.0, 5.0, 4.0]   #   Outlier thresholds in units of RMS
+
+
+
+# Final Imaging parameters 
+
+FinUvLim:     "2~200klambda"          #   UV range to use for imaging
+ImRobust:     0.5                     #   Robust for Briggs weighting 
+FiNiter:      1000                    #   Number of iterations
+FinSigma:     5.0                     #   N-sigma threshold for cleaning
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
