@@ -75,6 +75,10 @@ ankimgcmd="${pyex} ${Pipe_Dir}/pipescripts/ankimager.py \
     ${savemodel} ${intmask} ${scalmode} \
     ${mode} ${ovr}"
 
+snapcmd="${pyex} ${Pipe_Dir}/pipescripts/snapshoter.py \
+    --infile ${Input_Dir}/${imgparfile} \
+    ${mode} ${ovr}"
+
 #   Run commands
 
 excmd=""
@@ -86,6 +90,10 @@ if [[ "$1" == "calibrate" ]]; then
 elif [[ "$1" == "imgcal" ]]; then
     excmd="$ankimgcmd"
     echo "Running imaging and selfcal processes... "    
+    echo $excmd
+elif [[ "$1" == "snapshot" ]]; then
+    excmd="$snapcmd"
+    echo "Running snapshot imaging... "    
     echo $excmd
 else
     echo "Unknown operation mode..."
