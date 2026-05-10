@@ -101,7 +101,7 @@ elif (argus.mode == "initrawms"):
 
 #   Create single channel file
 elif (argus.mode == "makech0"):  
-    makesinglechan(pars['RawDir'] + pars['RawUvFile'], pars['SingleChan'], pars, ovrt=argus.overwrite)
+    makesinglechan(pars['RawDir'] + pars['RawUvFile'], pars, ovrt=argus.overwrite)
 
 #   Set flux scale of single channel file
 elif (argus.mode == "fluxch0"):  

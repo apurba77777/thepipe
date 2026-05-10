@@ -21,12 +21,14 @@ Input_Dir="../inputfiles/"
 
 #	Input files
 
-parfile="march15_b4"
+parfile="june25_24_b4"
 flgpar="ankpar_b4"
 rfifile="rfifreqb4.txt"
 
 imgparfile="img_b4_lugia"
 imgext="b4_0"
+
+searchpars="search_b4"
 
 savemodel=""
 intmask=""
@@ -79,6 +81,10 @@ snapcmd="${pyex} ${Pipe_Dir}/pipescripts/snapshoter.py \
     --infile ${Input_Dir}/${imgparfile} \
     ${mode} ${ovr}"
 
+searchcmd="${pyex} ${Pipe_Dir}/pipescripts/temprocess.py \
+    --infile ${Input_Dir}/${searchpars} \
+    ${mode} ${ovr}"
+
 #   Run commands
 
 excmd=""
@@ -94,6 +100,10 @@ elif [[ "$1" == "imgcal" ]]; then
 elif [[ "$1" == "snapshot" ]]; then
     excmd="$snapcmd"
     echo "Running snapshot imaging... "    
+    echo $excmd
+elif [[ "$1" == "search" ]]; then
+    excmd="$searchcmd"
+    echo "Looking for trnsients... "    
     echo $excmd
 else
     echo "Unknown operation mode..."

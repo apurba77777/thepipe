@@ -1,7 +1,7 @@
 import os,sys
 import argparse as ap
 import yaml as ym
-from cascripts.timaging import *
+from dynspecripts.transearch import *
 
 #	---------------------------------------------------------------------------------------------------------
 #
@@ -31,8 +31,8 @@ def get_args():
 
 def print_modes():
     print("\n You need to specify a mode with --mode !!!!!\n")
-    print(" Supported modes are      maketime    - Make list of timestamps in MJD")
-    print("                          snapshot    - Make snapshot images")
+    print(" Supported modes are      searchpos   - Search at a specific sky position")
+    print("                          qqqqqqqq    - ")
     
     print("\n Let's try again...\n")
     return (0)
@@ -59,11 +59,11 @@ else:
 #   ------------------  Make data directories   ---------------
 
 
-if (os.path.exists(pars['OutDir']+pars['CubeDir'])):
-    print("Found ",pars['OutDir']+pars['CubeDir'])
+if (os.path.exists(pars['OutDir']+pars['PlotDir'])):
+    print("Found ",pars['OutDir']+pars['PlotDir'])
 else:
-    print("Creating ",pars['OutDir']+pars['CubeDir'])
-    os.system("mkdir "+pars['OutDir']+pars['CubeDir'])
+    print("Creating ",pars['OutDir']+pars['PlotDir'])
+    os.system("mkdir "+pars['OutDir']+pars['PlotDir'])
 
 
 #   -------------------------   Missing mode    ---------
@@ -74,30 +74,19 @@ if (argus.mode == None):
 #   --------------------------- Tasks   ------------
 
 
-#   Make list of timestamps in MJD
+#   Search at a specific sky position
 
-elif (argus.mode == "maketime"):  
+if (argus.mode == "searchpos"):  
     
-    listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_uvsub_f_avg" for vis in pars['VisUvSub'] ]
+    fitslist   = [ pars['OutDir']+pars['CubeDir']+fname for fname in pars['FitsNames'] ]
 
-    for ivis in listofvis:
-        maketime (ivis)
-
-
+    for fitsname in fitslist:
+        getdynspec (fitsname, pars)
 
 
-#   Make snapshot images
 
-elif (argus.mode == "snapshot"):
 
-    listofvis   = [ vis+"_uvsub_f_avg" for vis in pars['VisUvSub'] ]
 
-    for ivis in listofvis:
-        times = np.loadtxt(pars['WorkDir']+pars['ImgUvDir']+ivis+"_mjds.txt")
-        timager (pars['WorkDir']+pars['ImgUvDir']+ivis, times, pars, ntime=-1)
-
-        cubename    = pars['OutDir']+pars['CubeDir']+"/"+ivis+"_tcube"
-        makefits (times, cubename, ntime=-1)
 
 
 else:

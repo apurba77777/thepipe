@@ -8,7 +8,7 @@ from casaplotms import plotms
 
 
 #   -----------------------------------------------------------------------------------------------------
-def importrawuvfile(fitsname, rawflglist, ovrt = False):
+def importrawuvfile (fitsname, rawflglist, ovrt = False):
     
     #   Import the raw UV data and apply the raw flagfile
 
@@ -31,7 +31,7 @@ def importrawuvfile(fitsname, rawflglist, ovrt = False):
 
 
 
-def initrawuvfile(fitsname, pars, rfifreq=None, ovrt = False):
+def initrawuvfile (fitsname, pars, rfifreq=None, ovrt = False):
     
     #   Prepare listobs and flag auto correlations
 
@@ -74,7 +74,23 @@ def initrawuvfile(fitsname, pars, rfifreq=None, ovrt = False):
         
             chanstr     = chanstr[:-1]
             print(chanstr)
-            ct.flagdata(vis=fitsname+".ms", mode="manual", spw=chanstr )        
+            ct.flagdata(vis=fitsname+".ms", mode="manual", spw=chanstr )    
+
+    cstart   = np.argmin(np.abs(chan_freqs - pars["FreqRange"][0])) 
+    cend     = np.argmin(np.abs(chan_freqs - pars["FreqRange"][1])) 
+
+    print(f"\n Extracting channel range {cstart} - {cend}\n")
+    ct.mstransform(
+        vis=fitsname+".ms", \
+        outputvis=fitsname+"_temp.ms", \
+        datacolumn="DATA", \
+        keepflags=False, \
+        spw="0:"+str(cstart)+"~"+str(cend), \
+        correlation=pars['CorrProds']
+    )
+
+    os.system("rm -rf "+fitsname+".ms")
+    os.system("mv "+fitsname+"_temp.ms "+fitsname+".ms")  
 
     print("\n Done!\n")
 
@@ -85,11 +101,18 @@ def initrawuvfile(fitsname, pars, rfifreq=None, ovrt = False):
 
 
 
-def makesinglechan(fitsname, chan0, pars = None, ovrt =False):
+def makesinglechan(fitsname, pars = None, ovrt =False):
     
     #   Isolate channel = chan0 from the maultichannel MS
 
-    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(chan0)+".ms"
+    wmsmd   = casatools.msmetadata()
+    wmsmd.open(fitsname+".ms")
+    chan_freqs  = wmsmd.chanfreqs(0)/1.0e6
+    wmsmd.done()
+
+    chan0   = np.argmin(np.abs(chan_freqs - pars["SingleChan"])) 
+
+    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.ms"
 
     if (os.path.exists(chan0file)):
         if (ovrt):
@@ -99,7 +122,7 @@ def makesinglechan(fitsname, chan0, pars = None, ovrt =False):
             print("Single channel file exists. use --overwrite to clear it.")
             return (1)
 
-    print("Creating single channel file...")
+    print(f"\n Creating single channel {chan0} file... \n")
     ct.mstransform(vis=fitsname+".ms", outputvis=chan0file, datacolumn="DATA", keepflags=False, \
                    spw="0:"+str(chan0), correlation=pars['CorrProds'], uvrange=pars['CalUvLim'], \
                     field=pars['FluxCal']+","+pars['PhaseCal'])
@@ -117,11 +140,11 @@ def setfluxsinglechan(pars = None):
     
     #   Set flux scale for the channel 0 file
 
-    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".ms"
+    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.ms"
 
     print("Setting flux density of single channel file...")
     setjyout = ct.setjy(vis=chan0file, field=pars['FluxCal'])
-    print(pars['FluxCal']," flux density ",setjyout['0']['0']['fluxd'])
+    print(pars['FluxCal']," flux density ",setjyout)
     print("\n Done!\n")
 
 
@@ -136,9 +159,9 @@ def calsinglechan(pars = None):
     
     #   Calibrate the channel 0 file
 
-    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".ms"
-    calfile     = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".cal"
-    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".fl"
+    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.ms"
+    calfile     = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.cal"
+    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.fl"
 
     if (os.path.exists(calfile)):
         os.system("rm -rf "+calfile)
@@ -161,7 +184,7 @@ def calsinglechan(pars = None):
     
     print("\nFlux scaling...\n")
     fsout = ct.fluxscale(vis=chan0file, caltable=calfile, fluxtable=fluxfile, reference=pars['FluxCal'], transfer=pars['PhaseCal'])
-    print(pars['PhaseCal']," flux density ",fsout['1']['0']['fluxd'])
+    print(pars['PhaseCal']," flux density ",fsout)
 
     print("\nApplying calibration...\n")
     ct.applycal(vis=chan0file, gaintable=[fluxfile], applymode='calonly')
@@ -187,7 +210,7 @@ def calsinglechan(pars = None):
         rowindex=1, \
         plotindex=1, \
         clearplots=False, \
-        plotfile=pars['WorkDir']+pars['LogDir']+"/cal_"+pars['ReducedName']+".png", \
+        plotfile=pars['WorkDir']+pars['LogDir']+"/cal_"+pars['ReducedName']+"_ch0.png", \
         height=1000, \
         width=1000, \
         coloraxis='antenna1', \
@@ -209,10 +232,10 @@ def flagsinglechan (pars=None, ankdir=None, ankin=None, ovrt=False):
     
     #   Flag calibrator data in the channel 0 file
 
-    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".ms"
+    chan0file   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.ms"
 
-    fcalfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+"_fcal"
-    pcalfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+"_pcal"
+    fcalfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0_fcal"
+    pcalfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0_pcal"
     
     if (os.path.exists(fcalfile+".fits") and ovrt):
         os.system("rm -rf "+fcalfile+".fits")
@@ -334,7 +357,7 @@ def exbpcal (fitsname, bpcal, pars=None):
     
     #   Extract the bandpass calibrator
 
-    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".fl"
+    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.fl"
     bpcalfile   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_bpcal_"+bpcal+".ms"
 
     os.system("rm -rf "+bpcalfile)
@@ -349,7 +372,7 @@ def exbpcal (fitsname, bpcal, pars=None):
 
     print("Setting flux density of BP cal file...")
     setjyout = ct.setjy(vis=bpcalfile, field=bpcal)
-    print(bpcal," flux density ",setjyout['0']['0']['fluxd'])
+    print(bpcal," flux density ",setjyout)
 
     print("\n Done!\n")
 
@@ -411,7 +434,6 @@ def calbpcal (bpcal, pars=None):
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
 
 
 
@@ -505,7 +527,7 @@ def extarget (fitsname, bpcal, pars=None):
     
     #   Extract calibrated target visibilities
 
-    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_chan_"+str(pars['SingleChan'])+".fl"
+    fluxfile    = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_ch0.fl"
     bpassfile   = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_bpcal_"+bpcal+".bp"
     tarfile     = pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+"_"+pars['TargetName']+".ms"
 
@@ -572,7 +594,7 @@ def flagtarget (targetname, pars=None, ankdir=None, ankin=None, ovrt=False):
         if (os.path.exists(tarfile+"_f.ms")):
             os.system("rm -rf "+tarfile+"_f.ms")
 
-        print("Converting BP calibrator FITS back to MS...\n")
+        print("Converting target FITS back to MS...\n")
         ct.importuvfits(vis=tarfile+"_f.ms", fitsfile=tarfile+"_f.fits")
         
     

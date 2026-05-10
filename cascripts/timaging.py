@@ -76,7 +76,7 @@ def makehdr (fitshdr, imdhr, tmjds):
 
 
 
-def timager (visfile, impre, tmjds, pars=None, ntime=-1):
+def timager (visfile, tmjds, pars=None, ntime=-1):
 
     #   Make a time series of image cubes 
 
@@ -110,6 +110,7 @@ def timager (visfile, impre, tmjds, pars=None, ntime=-1):
             datacolumn="corrected", \
             imsize=pars['TimgSize'], \
             cell=pars['TcellSize'], \
+            phasecenter=pars['TphaseCen'], \
             selectdata=True, \
             field=pars['TargetName'],\
             uvrange=pars['FinUvLim'], \
