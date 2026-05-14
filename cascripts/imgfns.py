@@ -1,10 +1,11 @@
 import os,sys
 import numpy as np
+from astropy.io import fits
 import casatasks as ct
 import casatools
 from casaplotms import plotms
-
-
+import bdsf as sf
+import matplotlib.pyplot as plt
 
 
 
@@ -54,8 +55,6 @@ def avgtarget (targetvis, pars=None):
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -110,8 +109,6 @@ def imgtarget (targetvislist, imgname, dosavemodel=True, dointeractive=False, pa
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -182,8 +179,6 @@ def selfcal (targetvis, calfile, gcmode=None, pars = None):
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -270,8 +265,6 @@ def flagcaltarget (tarfile, pars=None, ankdir=None, ankin=None, ovrt=False):
 
 
 
-
-
 def finalimg (targetvislist, dosavemodel=True, pars=None):
     
     #   Attempt to produce the *final* continuum image 
@@ -324,9 +317,6 @@ def finalimg (targetvislist, dosavemodel=True, pars=None):
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
-
-
 
 
 
@@ -394,9 +384,6 @@ def getuvsub (ivis, calfile, pars=None):
 
     return (0)
 #   -----------------------------------------------------------------------------------------------------
-
-
-
 
 
 
@@ -478,4 +465,139 @@ def flagavguvsub (tarfile, pars=None, ankdir=None, ankin=None, ovrt=False):
 
 
     return (0)
+#   -----------------------------------------------------------------------------------------------------
+
+
+
+def findsrcs (imgname, pars=None):
+    
+    #   Find sources in an image and make a catalogue
+
+    ct.exportfits(
+        imagename=imgname+".image.tt0", \
+        fitsimage=imgname+".fits", \
+        overwrite=True
+    )
+
+    xmin    = int( pars['ImgSize'][0] * (1.0 - pars['CenFrac'])/2.0 )
+    xmax    = xmin + int( pars['ImgSize'][0] * pars['CenFrac'] )
+
+    sfimg   = sf.process_image(
+                imgname+".fits", \
+                adaptive_rms_box = True, \
+                advanced_opts = True, \
+                group_by_isl = False, \
+                trim_box = (xmin, xmax, xmin, xmax), \
+                interactive = False, \
+                thresh_isl = pars['IslThresh'], \
+                thresh_pix = pars['PeakThresh']
+            )
+
+    sfimg.write_catalog(
+        outfile=imgname+"_srcmask.txt", \
+        catalog_type='srl', \
+        format='casabox', \
+        clobber=True
+    )
+	
+    sfimg.write_catalog(
+        outfile=imgname+".srcat.fits", \
+        catalog_type='gaul', \
+        format='fits', \
+        clobber=True
+    )
+
+    return (0)
+#   -----------------------------------------------------------------------------------------------------
+
+
+
+def readsfcat (imgname, pars=None):
+    
+    #   Read a source catalogue
+
+    fitscat = fits.open(imgname+".srcat.fits")
+
+    sfcat   = fitscat[1].data    
+    sfcat   = sfcat[sfcat['S_Code']=='S']
+    #print(sfcat['Peak_flux'])
+    fitscat.close()
+
+    return (sfcat)
+#   -----------------------------------------------------------------------------------------------------
+
+
+
+def checkselfcal (imgold, imgnew, pars=None):
+    
+    #   Check if self calibration has converged
+
+    print(f"\n  Checking for convergence... \n")
+
+    hasconverged    = True
+
+    iman    = casatools.image()
+
+    print(f"Reading image {imgold}...")
+    iman.open(imgold+".image.tt0")
+    imgoldata    = iman.getchunk(dropdeg=True)
+    iman.done()
+
+    print(f"Reading image {imgnew}...")
+    iman.open(imgnew+".image.tt0")
+    imgnewdata    = iman.getchunk(dropdeg=True)
+    iman.done()
+
+    iman.close()    
+    
+    cropold = imgoldata[imgoldata.shape[0]//2 - 100: imgoldata.shape[0]//2 + 100, \
+                      imgoldata.shape[1]//2 - 100: imgoldata.shape[1]//2 + 100]
+    
+    cropnew = imgnewdata[imgnewdata.shape[0]//2 - 100: imgnewdata.shape[0]//2 + 100, \
+                      imgnewdata.shape[1]//2 - 100: imgnewdata.shape[1]//2 + 100]
+    
+    cropdiff= cropnew - cropold
+
+    diffrms = 1.48 * np.nanmedian(np.abs(cropdiff))
+    oldrms  = 1.48 * np.nanmedian(np.abs(cropold))
+    newrms  = 1.48 * np.nanmedian(np.abs(cropnew))
+    print(f"\n  Central noise: {oldrms:.1e} (old), {newrms: .1e} (new), {diffrms: .1e} (difference)")
+
+    #   Convergence based on difference image
+
+    if (diffrms / newrms > pars['TolRms']):
+        hasconverged = False
+        print(f"  Residual / new = {diffrms / newrms} \n")
+        return (hasconverged)
+    
+    #plt.imshow(cropdiff.T / newrms, origin='lower', vmin=-3, vmax=5)
+    #plt.show()
+
+    oldcat  = readsfcat (imgold, pars)
+    newcat  = readsfcat (imgnew, pars)
+
+    xshift  = np.abs(oldcat['Xposn'] - newcat['Xposn']) / \
+                np.sqrt( oldcat['E_Xposn']*oldcat['E_Xposn'] + newcat['E_Xposn']*newcat['E_Xposn'] )
+    yshift  = np.abs(oldcat['Yposn'] - newcat['Yposn']) / \
+                np.sqrt( oldcat['E_Yposn']*oldcat['E_Yposn'] + newcat['E_Yposn']*newcat['E_Yposn'] )
+
+    #   Convergence in source position
+
+    if (max(max(xshift), max(yshift)) > pars['TolPos'] ):
+        hasconverged = False
+        print(f"  Maximum position offset = {max(xshift)}, {max(yshift)} \n")
+        return (hasconverged)
+    
+    dpeak       = np.abs(oldcat['Peak_flux'] - newcat['Peak_flux']) 
+    dpeakrel    = dpeak / newcat['E_Peak_flux']
+    dpeakfrac   = dpeak / newcat['Peak_flux']
+    
+    if (max(dpeakfrac) > pars['TolPeak'] and max(dpeakrel) > 2.0 ):
+        hasconverged = False
+        print(f"  Maximum difference in peak = {max(dpeakrel)} (relative), {max(dpeakfrac)} (fractional) \n")
+        
+    if (hasconverged):
+        print(f"\n -- Calibration process converged -- \n")
+
+    return (hasconverged)
 #   -----------------------------------------------------------------------------------------------------

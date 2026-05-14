@@ -8,20 +8,26 @@ from casaplotms import plotms
 
 
 #   -----------------------------------------------------------------------------------------------------
-def importrawuvfile (fitsname, rawflglist, ovrt = False):
+def importrawuvfile (fitsname, rawflglist, pars=None, ovrt = False):
     
     #   Import the raw UV data and apply the raw flagfile
 
-    if (os.path.exists(fitsname+".ms")):
+    visname = pars['WorkDir'] + '/' + pars['UvMsDir'] + '/' + pars['ReducedName'] +".ms"
+
+    if (os.path.exists(visname)):
         if (ovrt):
-            print("Clearing existing "+fitsname+".ms")
-            os.system("rm -rf "+fitsname+".ms")
+            print("\n  Clearing existing "+visname)
+            os.system("rm -rf "+visname)
         else:
-            print("MS file exists. use --overwrite to clear it.")
+            print("\n  MS file exists. Not importing raw FITS file...\n")
             return (1)
 
-    print("Creating MS file...")              
-    ct.importgmrt(fitsfile=fitsname+".fits", flagfile=rawflglist, vis=fitsname+".ms")
+    print("\n  Creating MS file...\n")              
+    ct.importgmrt(fitsfile=pars['RawDir']+'/'+fitsname+".fits",flagfile=rawflglist, vis=visname)
+
+    print("\n  Preparing listobs...\n")              
+    ct.listobs(vis=visname, listfile=visname+".listobs", overwrite=ovrt)
+
     print("\n Done!\n")
     
     return (0)
@@ -34,9 +40,6 @@ def importrawuvfile (fitsname, rawflglist, ovrt = False):
 def initrawuvfile (fitsname, pars, rfifreq=None, ovrt = False):
     
     #   Prepare listobs and flag auto correlations
-
-    print("Preparing listobs...\n")              
-    ct.listobs(vis=fitsname+".ms", listfile=pars['WorkDir']+pars['UvMsDir']+pars['ReducedName']+".listobs", overwrite=ovrt)
 
     print("Flagging autocorrelations...\n") 
     ct.flagdata(vis=fitsname+".ms", mode="manual", autocorr=True)
@@ -53,11 +56,7 @@ def initrawuvfile (fitsname, pars, rfifreq=None, ovrt = False):
     wmsmd.done()
 
     print("Mean channel width in MHz = ",chan_wmhz)
-    nedgechan   = int(pars['EdgeMhz'] / chan_wmhz) + 1
-
-    print("\nFlagging %d edge channels...\n"%(nedgechan)) 
-    ct.flagdata(vis=fitsname+".ms", mode="manual", spw="0:0~"+str(nedgechan)+";"+str(nchans-nedgechan-1)+"~"+str(nchans-1) )
-
+    
     if ((rfifreq != None) and os.path.exists(rfifreq)):        
 
         rfifreqs    = np.loadtxt(rfifreq)

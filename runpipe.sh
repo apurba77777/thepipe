@@ -21,12 +21,13 @@ Input_Dir="../inputfiles/"
 
 #	Input files
 
-parfile="june25_24_b4"
+parfile="calibration_b4_exam"
 flgpar="ankpar_b4"
 rfifile="rfifreqb4.txt"
 
 imgparfile="img_b4_lugia"
-imgext="b4_0"
+imgext="03"
+imgext0="02"
 
 searchpars="search_b4"
 
@@ -37,14 +38,10 @@ ovr=""
 
 #   Read command line inputs
 
-if [[ "$2" == "h" ]]; then
-	mode="--help"
-else
-    mode="--mode $2"
-fi
+mode="$2"
 
 if [[ "$3" == "o" ]]; then
-	ovr="--overwrite"
+	ovr="--obliviate"
 elif [[ "$3" == "p" ]]; then
 	scalmode="--calmode p"
 else
@@ -74,6 +71,7 @@ ankimgcmd="${pyex} ${Pipe_Dir}/pipescripts/ankimager.py \
     --flgin ${Input_Dir}/${flgpar} \
     --rfifile ${Input_Dir}/${rfifile} \
     --imgname ${imgext} \
+    --oldimg ${imgext0} \
     ${savemodel} ${intmask} ${scalmode} \
     ${mode} ${ovr}"
 

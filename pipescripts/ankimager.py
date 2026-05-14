@@ -5,7 +5,33 @@ from cascripts.imgfns import *
 
 #	---------------------------------------------------------------------------------------------------------
 #
-#	-------
+#	This is aNKimager
+#                                                   AB  [last updated: 13 May 2026]
+#
+#   This programme can be used to calibrate (GMRT) visibility data
+#
+#   To run this programme, use the following command with a python executor
+#
+#   ankimager.py        --[mode(s)]                 //  processing step(s) -- see description below
+#                       --infile [param_YAML]       //  YAML file containing input parameters
+#                       --flgin [ankflag_YAML]      //  YAML file containing aNKflag parameters
+#                       --rfifile [RFI_text]        //  TEXT file with RFI frequency ranges
+#                       --pipedir [pipe_direcory]   //  Path to the pipeline itself
+#                       --overwrite                 //  If certain outputs are to be overwritten
+#
+#
+#   Supported modes are                 avgtarget   //  Channel average target visibilities
+#                                       imgtarget   //  Image the calibrated target
+#                                       findsrcs    //  (For internal use only)
+#                                       selfcal     //  Self calibrate
+#                                       chkselfcal  //  (For internal use only)
+#                                       flagcal     //  Flag calibrated visibilities
+#                                       contimg     //  Attempt to produce the *final* continuum image
+#                                       getuvsub    //  Subtract the final continuum model
+#                                       flaguvsub   //  Flag continuum subtracted visibilities
+#
+#
+#       Combined modes                  fullselfcal //  Self calibrate until 'convergence' 
 #
 #	--------------------------------------------------------------------------------------------------------
 
@@ -20,16 +46,33 @@ def get_args():
         description = "Run the *unnamed* pipeline"
     )
 
-    parser.add_argument("--mode", help = "What to do", type = str, default = None)
     parser.add_argument("--infile", help = "YAML file with input params", type = str, default = None)
     parser.add_argument("--flgin", help = "YAML file with flagging params", type = str, default = None)
     parser.add_argument("--rfifile", help = "File with list of RFI frequencies", type = str, default = None)
-    parser.add_argument("--imgname", help = "Name of the image (only for imaging)", type = str, default = None)
+    parser.add_argument("--imgname", help = "Name of the image (only for imaging)", type = str, default = "random")
+    parser.add_argument("--oldimg", help = "Old image for checking selfcal", type = str, default = "random")
     parser.add_argument("--pipedir", help = "Directory to the pipeline", type = str, default = None)
     parser.add_argument("--savemodel", help = "Save model column?", action='store_true')
     parser.add_argument("--intmask", help = "Interactive masking?", action='store_true')
-    parser.add_argument("--calmode", help = "Self-calibration mode (p/ap)", type = str, default = None)
+    parser.add_argument("--calmode", help = "Self-calibration mode (p/ap)", type = str, default = "p")
     parser.add_argument("--overwrite", help = "Clear existing files?", action='store_true')
+    parser.add_argument("--listmodes", help = "List supported modes", action='store_true')
+    parser.add_argument("--listpars", help = "List input parameters", action='store_true')
+
+
+    #   Modes
+    parser.add_argument("--avgtarget", help = "Channel average target visibilities", action='store_true')
+    parser.add_argument("--imgtarget", help = "Image the calibrated target", action='store_true')
+    parser.add_argument("--selfcal", help = "Self calibrate", action='store_true')
+    parser.add_argument("--findsrcs", help = "(For internal use only)", action='store_true')
+    parser.add_argument("--chkselfcal", help = "(For internal use only)", action='store_true')
+    parser.add_argument("--flagcal", help = "Flag calibrated visibilities", action='store_true')
+    parser.add_argument("--contimg", help = "Attempt to produce the *final* continuum image", action='store_true')
+    parser.add_argument("--getuvsub", help = "Subtract the final continuum model", action='store_true')
+    parser.add_argument("--flaguvsub", help = "Flag continuum subtracted visibilities", action='store_true')
+
+    #   Combined modes
+    parser.add_argument("--fullselfcal", help = "Self calibrate until convergence reached", action='store_true')
 
     args = parser.parse_args()
 
@@ -41,10 +84,14 @@ def print_modes():
     print(" Supported modes are      avgtarget   - Channel average target visibilities")
     print("                          imgtarget   - Image the calibrated target")
     print("                          selfcal     - Self calibrate")
+    print("                          findsrcs    - (For internal use only)")
+    print("                          chkselfcal  - (For internal use only)")
     print("                          flagcal     - Flag calibrated visibilities")
     print("                          contimg     - Attempt to produce the *final* continuum image")
     print("                          getuvsub    - Subtract the final continuum model")
-    print("                          flaguvsub   - Flag continuum subtracted visibilities")
+    print("                          flaguvsub   - Flag continuum subtracted visibilities\n")
+
+    print(" Combined modes           fullselfcal - Self calibrate until convergence reached")
     
     print("\n Let's try again...\n")
     return (0)
@@ -55,7 +102,7 @@ def print_modes():
 
 argus   = get_args()
 
-print("\n\n ******** This is *unnamed* pipeline ******** \n\n")
+print("\n\n ******** This is aNKimager ******** \n\n")
 
 #   Read input parameters
 if (argus.infile == None):
@@ -64,8 +111,9 @@ if (argus.infile == None):
 else:
     with open(argus.infile+'.yml', 'r') as infl:
         pars = ym.load(infl, Loader=ym.SafeLoader)
-        print(" Inputs provided -- \n")
-        print(ym.dump(pars, sort_keys=False))
+        if (argus.listpars):
+            print(" Inputs provided -- \n")
+            print(ym.dump(pars, sort_keys=False))
 
 if (argus.flgin == None):
     print(" Missing YAML file for flagging! aNKflag won't run...\n")
@@ -88,77 +136,73 @@ else:
 
 
 #   -------------------------   Missing mode    ---------
-if (argus.mode == None):
+#   List supported modes
+if (argus.listmodes):  
     print_modes()
-    sys.exit()
 
 #   --------------------------- Tasks   ------------
 
 
 
 #   Channel average target visibilities
-if (argus.mode == "avgtarget"):      
-
+if (argus.avgtarget):      
     for ivis in pars['VisList']:
         avgtarget (ivis, pars)
 
 
-
-
-#   Convert fits to MS
-elif (argus.mode == "imgtarget"):  
-    
+#   Image the target field
+if (argus.imgtarget):      
     listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg.ms" for vis in pars['VisList'] ]
 
     imgtarget(listofvis, argus.imgname, argus.savemodel, argus.intmask, pars)
 
 
+#   Find sources and make a catalogue
+if (argus.findsrcs):  
+    imgfile  = pars['WorkDir']+pars['ImgDir']+'/'+pars['TargetName']+'_'+argus.imgname   
+
+    findsrcs (imgfile, pars)
+
+
+#   Check if self calibration converged
+if (argus.chkselfcal):  
+    img1  = pars['WorkDir']+pars['ImgDir']+'/'+pars['TargetName']+'_'+argus.imgname
+    img2  = pars['WorkDir']+pars['ImgDir']+'/'+pars['TargetName']+'_'+argus.oldimg    
+
+    checkselfcal (img1, img2, pars)
 
 
 #   Self-calibrate
-elif (argus.mode == "selfcal"):  
-    
+if (argus.selfcal):      
     listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg" for vis in pars['VisList'] ]
 
     for ivis in listofvis:
         selfcal (ivis, ivis+".scal", argus.calmode, pars)
 
 
-
-
 #   Flag calibrated visibilities
-elif (argus.mode == "flagcal"):  
-    
+if (argus.flagcal):      
     listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg" for vis in pars['VisList'] ]
 
     for ivis in listofvis:
         flagcaltarget (ivis, pars, ankdir=argus.pipedir+"ankflag_3/", ankin=argus.flgin, ovrt=argus.overwrite)
 
 
-
-
 #   Attempt to produce the *final* continuum image
-elif (argus.mode == "contimg"):  
-    
+if (argus.contimg):      
     listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_avg.ms" for vis in pars['VisList'] ]
 
     finalimg(listofvis, argus.savemodel, pars)
 
 
-
-
 #   Channel average target visibilities
-elif (argus.mode == "getuvsub"):      
-
+if (argus.getuvsub):      
     for ivis in pars['VisUvSub']:
         getuvsub (ivis, ivis+"_f_avg.scal", pars)
 
 
-
-
 #   Flag continuum subtracted visibilities
-elif (argus.mode == "flaguvsub"):  
-    
+if (argus.flaguvsub):      
     listofvis   = [ pars['WorkDir']+pars['ImgUvDir']+vis+"_uvsub" for vis in pars['VisUvSub'] ]
 
     for ivis in listofvis:
@@ -166,6 +210,5 @@ elif (argus.mode == "flaguvsub"):
 
 
 
-else:
-    print_modes()
+
 
