@@ -1,5 +1,5 @@
 #   -------------------------------------------------------------
-#   Parameters for imaging and selfcal --> Band 3, Lugia (J1832)
+#   Parameters for imaging and selfcal --> Band 4, Lugia (J1832)
 #   -------------------------------------------------------------
 
 #   Directories 
@@ -17,7 +17,7 @@ LogDir:       "logs/"                 #   Directory for logs and diagnostics (Wi
 # Data files and field identifiers
 
 VisList:                              #   List of visibilities (without .ms) for imaging
-    - "15mar2026_b4_J1832_f" 
+    - "25june2024_b4_J1832_f" 
 
 
 TargetName:   "J1832"                 #   Name of the target field
@@ -29,7 +29,7 @@ PreModel:     ""                      #   Existing model to use
 ImgUvLim:     "3~200klambda"          #   UV range to use for imaging
 ImUvTaper:    ["35klambda"]           #   UV taper 
 
-ImgSize:      [3000]                  #   In pixel units 
+ImgSize:      [3000]                  #   In pixel units [rectangle not yet supported]
 CellSize:     ["1.0arcsec"]           #   Pixel size
 WprojPln:     100                     #   Number of w-projection planes, -1 for automatic
 WtRobust:     0.0                     #   Robust for Briggs weighting 
@@ -46,22 +46,30 @@ MaskFile:     "../inputfiles/J1832_b4.mask"                      #   Pre-existin
 #   Computing parameters
 
 FlgThreads:   8                       #   Number of threads for flagging
-TarChanAvg:   32                      #   Channel averaging factor for selfcal
-FinChanAvg:   64                      #   Channel averaging factor for uvsub
+TarChanAvg:   5                       #   Channel averaging factor for selfcal
+FinChanAvg:   5                       #   Channel averaging factor for uvsub
 
 #   Self-cal parameters
 
 CalUvLim:     "3~200klambda"
 GainInt:      "120s"                  #   Gain solution interval
-RefAntenna:   "10"                    #   Reference antenna
+RefAntenna:   "11"                    #   Reference antenna
 MinSNR:       5.0                     #   Minimum SNR
-OutThresh:    [10.0, 7.0, 5.0, 4.5]   #   Outlier thresholds in units of RMS
+OutThresh:    [7.0, 5.0, 4.0, 3.0]    #   Outlier thresholds in units of RMS
 
+PeakThresh:   10.0                    #   Peak threshold for source detecion
+IslThresh:    8.0                     #   Island threshold       
+CenFrac:      0.6                     #   Fractional box size for source detection    
+MaxIter:      10                      #   Maximum iterations for full selfcal
+
+TolPos:       1.0                     #   Position tolerance in units of uncertainty
+TolPeak:      0.1                     #   Fractional tolerance in peak value
+TolRms:       0.2                     #   Fractional tolerance in residual RMS
 
 
 # Final Imaging parameters 
 
-FinImage:     "J1832_15mar2026_b4"    #   Name of the final image
+FinImage:     "J1832_25june2024_b4"   #   Name of the final image
 FinUvLim:     "3~200klambda"          #   UV range to use for imaging
 ImRobust:     0.0                     #   Robust for Briggs weighting 
 FiNiter:      5000                    #   Number of iterations
@@ -74,17 +82,17 @@ FinSigma:     5.0                     #   N-sigma threshold for cleaning
 CubeDir:      "tcubes/"               #   Directory for cubes (within OutDir)
 
 VisUvSub:
-    - "15mar2026_b4_J1832"            #   List of visibilities (without .ms) for uvsub imaging
+    - "25june2024_b4_J1832"           #   List of visibilities (without .ms) for uvsub imaging
 
-TimgSize:     [128]                   #   In pixel units 
-TcellSize:    ["2.0arcsec"]           #   Pixel size
-TwprojPln:    20                      #   Number of w-projection planes, -1 for automatic
+TimgSize:     [32]                    #   In pixel units 
+TcellSize:    ["1.0arcsec"]           #   Pixel size
+TwprojPln:    1                       #   Number of w-projection planes, -1 for automatic
 TwtRobust:    0.5                     #   Robust for Briggs weighting 
-TavgChan:     4                       #   Channel averaging for snapshot imaging
+TavgChan:     2                       #   Channel averaging for snapshot imaging
 
-
-# phasecentre                         #   For targeted imaging
-# mjdrange
+TphaseCen:    "J2000 278.2019121deg -9.1875825deg"  
+                                      #   Phase centre (blank string --> default)
+TmjdRange:    ""                      #   Range of MJDs -- *** NOT YET IMPLEMENTED ***
 
 
 

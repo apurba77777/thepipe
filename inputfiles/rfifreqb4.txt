@@ -1,7 +1,7 @@
 #   Frequency ranges in MHz  
 #   Don't change the first (dummy) row
 0.0         0.0
-
+700.0       1000.0
 
 
 

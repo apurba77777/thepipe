@@ -1,0 +1,54 @@
+#   --------------------------------------
+#   Parameters for basic calibration
+#   --------------------------------------
+
+#   Directories 
+
+WorkDir:      "../processing/"
+RawDir:       "../rawdata/"
+OutDir:       "../reduced/"
+
+UvMsDir:      "uvms/"                 #   Directory for intermediate UV files (Within WorkDir)
+LogDir:       "logs/"                 #   Directory for logs and diagnostics (Within WorkDir)
+
+# Data files and field identifiers
+
+RawUvFile:    "DDTC341B_25JUN2024_SUBAR2_B4_GWB.LTA_RRLL.RRLLFITS" 
+RawFlagFiles: ""                      #   With path
+ReducedName:  "25june2024_b4"
+TargetName:   "J1832"                 #   Name of the target field
+
+# Selection parameters
+
+CorrProds:    "RR,LL"                 #   Correpation products to use
+EdgeMhz:      10.0                    #   Edge of the band in MHz to flag  
+FreqRange:    [565.0, 685.0]          #   Frequency range in MHz
+
+#  Calibration parameters
+
+SingleChan:   587.0                   #   Single channel frequency in MHz 
+FluxCal:      "3C48"                  #   Flux calibrator
+PhaseCal:     "1822-096"              #   Phase calibrator
+CalUvLim:     "3~40klambda"
+GainInt:      "120s"                  #   Gain solution interval
+RefAntenna:   "11"                    #   Reference antenna
+MinSNR:       5.0                     #   Minimum SNR
+OutThresh:    [10.0, 7.0, 5.0, 4.5]   #   Outlier thresholds in units of RMS
+CalScanEnd:   30.0                    #   Seconds to flag at either end of the calibrator scans
+
+CalIter:      3                       #   Flag-cal iterations (for calgt/caltar mode)
+BpIter:       3                       #   Flag-bandpass iterations (for calbp/caltar mode)
+
+#   Computing parameters
+
+FlgThreads:   8                       #   Number of threads for flagging
+
+#  Transformation parameters for target
+
+TarUvLim:     "3~200klambda"
+
+
+
+
+
+

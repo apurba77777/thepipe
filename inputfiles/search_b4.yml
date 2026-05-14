@@ -1,0 +1,45 @@
+#   -------------------------------------------------------------
+#   Parameters for imaging and selfcal --> Band 4, Lugia (J1832)
+#   -------------------------------------------------------------
+
+#   Directories 
+
+WorkDir:      "../processing/"
+OutDir:       "../reduced/"
+
+CubeDir:      "tcubes/"               #   Directory for cubes (within OutDir)
+PlotDir:      "plots/"                #   Directory for cubes (within OutDir)
+
+#   Data cubes
+
+FitsNames:                            #   List of FITSfiles (without FITS)
+    - "25june2024_b4_J1832_uvsub_f_avg_tcube"            
+
+#   Inspect a specific sky position
+
+SrcRA:        278.2019121             #   Degrees    
+SrcDec:       -9.1875825              #   Degrees
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
